@@ -3,48 +3,65 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../api';
 
 const Login = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError]   = useState('');
+  const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const data = await login(username, password);
-            if (data.token) {
-                navigate('/admin');
-            } else {
-                setError(data.error || 'Login failed');
-            }
-        } catch (err) {
-            setError('Server error');
-        }
-    };
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const data = await login(username, password);
+      if (data.token) {
+        navigate('/admin');
+      } else {
+        setError(data.error || 'Invalid credentials');
+      }
+    } catch {
+      setError('Server error — make sure the backend is running.');
+    }
+  };
 
-    return (
-        <div className="flex-1 flex items-center justify-center p-6 py-24">
-            <div className="glass-card w-full max-w-md p-8 rounded-2xl">
-                <h2 className="text-3xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">Admin Access</h2>
-                {error && <p className="text-red-400 text-center mb-4">{error}</p>}
-                <form onSubmit={handleLogin} className="space-y-6">
-                    <div>
-                        <label className="block text-slate-300 mb-2 font-medium">Username</label>
-                        <input type="text" value={username} onChange={e => setUsername(e.target.value)} 
-                               className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
-                    </div>
-                    <div>
-                        <label className="block text-slate-300 mb-2 font-medium">Password</label>
-                        <input type="password" value={password} onChange={e => setPassword(e.target.value)} 
-                               className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
-                    </div>
-                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-lg shadow-blue-500/20">
-                        Login
-                    </button>
-                </form>
-            </div>
+  return (
+    <div className="flex-1 flex items-center justify-center bg-slate-50 py-24 px-6">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-2xl font-black mx-auto mb-4 shadow-blue">
+            A
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900">Admin Login</h1>
+          <p className="text-slate-500 text-sm mt-1">Access your portfolio dashboard</p>
         </div>
-    );
+
+        <div className="card shadow-card p-8">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm font-medium mb-5">
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Username</label>
+              <input
+                type="text" value={username} onChange={e => setUsername(e.target.value)} required
+                className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+                placeholder="admin"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+              <input
+                type="password" value={password} onChange={e => setPassword(e.target.value)} required
+                className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+                placeholder="••••••••"
+              />
+            </div>
+            <button type="submit" className="w-full btn-primary mt-2">Sign In →</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Login;
