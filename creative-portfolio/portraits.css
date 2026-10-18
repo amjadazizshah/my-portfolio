@@ -1,0 +1,46 @@
+/* Portraits and CVs — the personal layer. */
+.portrait-stage{border-radius:46px;background:linear-gradient(145deg,#ffffffb0,#d6c4fb47 65%,#adede665);inset:0 10px 15px 26px}
+.portrait-art{position:absolute;inset:55px 0 85px;isolation:isolate;display:grid;place-items:center}
+.portrait-art[hidden]{display:none}
+.portrait-art>img{height:110%;width:106%;max-width:none;object-fit:contain;position:absolute;bottom:-16px;z-index:1;filter:drop-shadow(0 15px 20px #73608a25);animation:portrait-float 8s ease-in-out infinite}
+.portrait-orbit{width:84%;aspect-ratio:1;border:1px solid #ffffffbd;border-radius:50%;background:radial-gradient(ellipse at 30% 20%,#fff9,transparent 60%);box-shadow:inset 0 0 40px #a0d9f030,0 0 0 25px #ffffff10;transform:rotate(-18deg)}
+.portrait-spark{position:absolute;right:20px;top:0;color:#8b6dc4;font-size:54px;z-index:2}
+.stage-top{left:30px;right:30px;top:27px;z-index:3}
+.portrait-caption{bottom:19px;z-index:5}
+.portrait-caption strong{font-size:14px}
+.portrait-view-switch{display:inline-flex;margin-top:9px;padding:4px;border:1px solid #fffc;border-radius:24px;background:#ffffff7a;gap:3px}
+.portrait-view-switch button{background:none;color:var(--muted);font:600 10px/1.4 'Plus Jakarta Sans',sans-serif;padding:7px 12px;border-radius:20px;transition:background .2s,color .2s}
+.portrait-view-switch button.active{background:var(--ink);color:white}
+
+
+
+
+
+
+.floating-film{bottom:103px;left:-23px}.floating-code{top:72px;right:-18px}
+.about-portrait{margin:35px 0 0;max-width:340px;padding:9px;background:#ffffff90;border:1px solid white;border-radius:36px;box-shadow:var(--shadow);transform:rotate(-3deg)}
+.about-portrait img{border-radius:28px;width:100%;height:auto;display:block}
+.about-portrait figcaption{font-size:10px;color:var(--muted);padding:13px 10px 6px;text-align:center}
+.cv-section{padding-top:20px}.cv-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.cv-card{position:relative;overflow:hidden;padding:36px;border-radius:32px;background:linear-gradient(140deg,#fff9,#e6dcff7a);border:1px solid white;box-shadow:var(--shadow);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.cv-card.creative-cv{background:linear-gradient(140deg,#fff9,#d8f4ec75)}
+.cv-card .eyebrow{position:relative}.cv-card h3{font-size:29px;letter-spacing:-.05em;margin:24px 0 15px;font-weight:650;position:relative}.cv-card p{max-width:350px;font-size:13px;line-height:1.8;color:var(--muted)}
+.cv-symbol{position:absolute;right:22px;top:7px;color:#8b6dc418;font-size:100px;line-height:1;font-weight:750;transform:rotate(12deg)}
+.creative-cv .cv-symbol{color:#5cad941c;font-size:150px;top:-20px;right:15px}
+.cv-downloads{display:flex;align-items:center;gap:22px;margin-top:28px;flex-wrap:wrap}
+.navlinks{gap:19px}
+@keyframes portrait-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.motion-paused .portrait-art>img{animation-play-state:paused}
+@media(max-width:1000px){.navlinks{gap:14px}.navlinks a{font-size:9px}.hero h1{font-size:58px}.cv-card{padding:28px}.cv-card h3{font-size:25px}.cv-downloads{gap:15px}.cv-downloads .button{gap:16px}}
+@media(max-width:700px){.hero h1{font-size:48px}.portrait-stage{inset:0 13px 15px 13px;border-radius:36px}.portrait-art{inset:51px 0 86px}.portrait-art>img{height:110%;width:105%}.portrait-caption strong{font-size:13px}.portrait-caption{bottom:17px}.portrait-view-switch button{font-size:10px;padding:6px 12px}.floating-film{bottom:110px;left:0}.floating-code{right:0;top:68px}.about-portrait{max-width:280px;margin-top:26px}.cv-grid{grid-template-columns:1fr;gap:17px}.cv-card{padding:27px;border-radius:26px}.cv-card h3{font-size:27px;margin-top:23px}.cv-card p{font-size:12px}.cv-card .eyebrow{font-size:8px}.cv-downloads .button{font-size:11px;min-height:46px}.cv-downloads .quiet-link{font-size:10px}.cv-symbol{font-size:90px}.creative-cv .cv-symbol{font-size:130px}}
+@media(max-width:360px){.hero h1{font-size:40px}.cv-card h3{font-size:24px}.cv-downloads{gap:14px}.cv-downloads .button{font-size:10px;padding-inline:15px}.cv-downloads .quiet-link{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.portrait-art>img{animation:none}}
+
+.creative-type{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;font:750 clamp(36px,4vw,64px)/1.02 "Plus Jakarta Sans",sans-serif;letter-spacing:-.065em;transform:rotate(-6deg);color:var(--ink)}
+.creative-type span:nth-child(2){color:#7965c6}.creative-type span:nth-child(3){font-size:.67em;color:#3c8b83}.portrait-orbit{background:radial-gradient(ellipse at 30% 20%,#fff9,transparent 60%),linear-gradient(140deg,#d8c7ff90,#aeeade80)}
+
+/* Original portrait, presented inside the luminous glass frame. */
+.real-portrait{position:absolute;inset:0 35px -10px;border-radius:32px;overflow:hidden;z-index:2;box-shadow:0 16px 36px #294a4430;transform:rotate(-3deg);border:5px solid #ffffffcf;background:#dbe8e3}
+.real-portrait img{position:absolute;max-width:none;width:162%;height:auto;left:-31%;top:-28%}
+.portrait-spark{z-index:3}.cv-downloads{gap:18px}.cv-downloads .quiet-link{font-size:11px}
+@media(max-width:700px){.real-portrait{inset:0 27px -4px;border-radius:27px}.real-portrait img{top:-24%}.cv-downloads{gap:16px}}

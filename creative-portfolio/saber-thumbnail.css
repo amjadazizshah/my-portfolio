@@ -1,0 +1,11 @@
+.saber-portrait-card{display:block;padding:0;background:#0a1034;color:#fff}
+.saber-channel-portrait{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 35%}
+.saber-portrait-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#080b2b65,transparent 20%,transparent 55%,#060a29a8 80%,#060a29f5);pointer-events:none}
+.saber-card-top,.saber-card-name,.saber-card-bottom{position:absolute;z-index:1;left:30px;right:30px}
+.saber-card-top{top:25px;display:flex;justify-content:space-between;align-items:center;padding-left:44px;font-size:9px;font-weight:700;letter-spacing:.14em;text-shadow:0 1px 7px #000}
+.saber-card-top>span{font-size:24px;line-height:1}
+.saber-card-name{bottom:58px;font-size:65px;line-height:1.05;letter-spacing:-.055em;font-weight:800;text-shadow:0 3px 20px #070c3a55}
+.saber-card-bottom{bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:10px;font-weight:600}
+.saber-portrait-card:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+@media(max-width:900px){.saber-card-top{font-size:7px;padding-left:22px;left:25px;right:25px}.saber-card-name{left:25px;right:25px;font-size:54px}.saber-card-bottom{left:25px;right:25px;font-size:8px}}
+@media(max-width:640px){.saber-card-top{padding-left:30px}.saber-card-name{font-size:60px}.saber-card-bottom{font-size:9px}}
