@@ -1,11 +1,15 @@
-# Amjad Aziz Shah — Creative & Developer
+# Amjad Shah — Creative & Developer
 
-The complete updated portfolio is in `creative-portfolio/`, including the original portrait, five project thumbnails retrieved from their repositories, the approved Saber anime portrait, photo and ATS CV downloads, and the newer 29-second CreADE commercial. All required media files are stored in this repository.
+The live Render portfolio source is in `creative-portfolio/`. It includes the original portrait, existing project artwork, Saber portrait, the two designed PDF CVs, and the 29-second Cre·ADE commercial with the download control suppressed.
 
-## Build
+The current final year project is **UnStickCode: An Offline Desktop IDE for Guided Programming Learning**, replacing Capture Defect. The page describes the planned Windows prototype, educational language/compiler/VM, visual debugger, reviewed lessons/exercises, bounded offline neural guidance, and English push-to-talk tutor. Proposal goals are distinguished from completed capabilities. The full student form is not published.
 
-From `src/`, run `npm install` then `npm run build`. The build uses only Node built-ins and copies the complete static portfolio to `src/build/`. Node 18+ is required.
+New concept covers for UnStickCode and Restaurant POS are in `creative-portfolio/assets/projects/`. Their source prompts and usage notes are recorded in `docs/portfolio-cover-prompts.md`. They are labeled as conceptual illustrations, not application screenshots.
 
-The existing Render static service uses root directory `src`, build command `npm install; npm run build`, and publish directory `build`. Its existing settings therefore work with this build. Resume the existing service in Render to publish.
+## Build and deploy
 
-The previous React implementation remains in the repository. Personal and client media belong to their respective owners; no reuse licence is granted.
+From `src/`, run `npm run build`. The build uses Node built-ins to copy the static portfolio to `src/build/` (Node 18+).
+
+The existing Render service uses root directory `src`, build command `npm install; npm run build`, and publish directory `build`. It deploys the repository's `master` branch automatically. The previous React implementation remains in the repository.
+
+Personal and client media belong to their respective owners; no reuse licence is granted.

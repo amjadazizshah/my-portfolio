@@ -11,3 +11,12 @@
 .thumb-meta i{font-style:normal;font-size:18px;line-height:1}
 .repository-thumb:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
 @media(prefers-reduced-motion:reduce){.repository-thumb .project-thumb{transition:none}.repository-thumb:hover .project-thumb{transform:none}}
+
+/* Generated conceptual covers; existing repository artwork is retained. */
+.generated-cover{background:#ece4d8}.generated-cover .project-thumb{object-fit:contain;padding:0}
+.case-cover{display:block;width:100%;height:auto;border-radius:14px;margin-bottom:26px}
+.fyp-cover-panel{min-width:0;padding:0;align-self:center}.fyp-cover-button{display:block;padding:0;width:100%;position:relative;border-radius:18px;overflow:hidden;background:#e8dfd2;text-align:left}.fyp-cover-button img{width:100%;height:auto;display:block}.fyp-cover-button>span{display:flex;align-items:center;justify-content:space-between;padding:13px 17px;background:#fff9;font-size:8px;font-weight:700;letter-spacing:.08em}.fyp-cover-button i{font-size:18px;font-style:normal}.fyp-features{display:flex;gap:6px;flex-wrap:wrap;margin-top:15px}.fyp-features button{min-height:44px;padding:10px 14px;border-radius:12px;font-size:10px;background:#fff8}.fyp-features button.active{background:var(--ink);color:#fff}.fyp-feature-description{font-size:11px;line-height:1.8;margin-top:12px;min-height:60px;color:var(--muted)}.fyp-art-note{font-size:8px;line-height:1.7;color:var(--muted);margin-top:10px}
+@media(max-width:900px){.research-grid{grid-template-columns:1fr}.fyp-cover-panel{width:100%}.fyp-feature-description{font-size:12px;min-height:0}.fyp-art-note{font-size:9px}}
+@media(max-width:640px){.fyp-cover-button{border-radius:13px}.fyp-features{gap:5px}.fyp-features button{padding-inline:12px;font-size:10px}.fyp-cover-button>span{font-size:7px;padding:12px}.fyp-art-note{font-size:9px}.fyp-feature-description{font-size:11px;line-height:1.85}}
+/* Prevent the personal-channel heading joining into one wide word on phones. */
+@media(max-width:640px){.personal-copy,.channel-art{min-width:0}.personal-copy h2 br:nth-child(2){display:block}}
