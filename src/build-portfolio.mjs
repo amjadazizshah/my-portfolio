@@ -4,4 +4,4 @@ const source = fileURLToPath(new URL('../creative-portfolio/', import.meta.url))
 const output = fileURLToPath(new URL('./build/', import.meta.url));
 await rm(output, { recursive: true, force: true });
 await cp(source, output, { recursive: true });
-console.log('Built the complete creative portfolio, including all images, CVs and video.');
+console.log('Built portfolio with scoped freelance services, case studies and interactive workflow demo.');
