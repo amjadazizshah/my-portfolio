@@ -26,7 +26,25 @@ if(window.matchMedia('(hover: hover) and (pointer: fine)').matches){document.que
 const progress=document.getElementById('reading-progress');let scrollTick=false;function updateProgress(){const max=document.documentElement.scrollHeight-innerHeight;progress.style.transform=`scaleX(${max>0?Math.min(1,Math.max(0,scrollY/max)):0})`;scrollTick=false;}addEventListener('scroll',()=>{if(!scrollTick){scrollTick=true;requestAnimationFrame(updateProgress);}},{passive:true});updateProgress();
 if('IntersectionObserver' in window){const navObserver=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){navigation.querySelectorAll('a').forEach(a=>a.classList.toggle('current',a.hash==='#'+e.target.id));}}),{rootMargin:'-15% 0px -65% 0px'});['films','services','development','research','about','cv'].forEach(id=>navObserver.observe(document.getElementById(id)));}
 const toast=document.getElementById('toast');let toastTimer;function showToast(text){toast.textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.textContent='',4000);}document.getElementById('copy-email').addEventListener('click',async()=>{try{await navigator.clipboard.writeText('amjadshahg26@gmail.com');showToast('Email address copied.');}catch{showToast('amjadshahg26@gmail.com');}});
-document.getElementById('contact-form').addEventListener('submit',event=>{event.preventDefault();const type=document.getElementById('project-type').value,message=document.getElementById('project-message').value.trim();if(!message){document.getElementById('project-message').focus();return;}const budget=document.getElementById('project-budget').value,date=document.getElementById('project-date').value||'To discuss';const subject=`Project brief — ${type}`,body=`Hi Amjad,\n\n${message}\n\nProject type: ${type}\nBudget (USD): ${budget}\nTarget date: ${date}\n`;location.href=`mailto:amjadshahg26@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;showToast('Opening your email app — send your message there.');});
+document.getElementById('contact-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ const type=document.getElementById('project-type').value;
+ const message=document.getElementById('project-message').value.trim();
+ if(!message){document.getElementById('project-message').focus();return;}
+ const budget=document.getElementById('project-budget').value.trim()||'To discuss';
+ const date=document.getElementById('project-date').value||'To discuss';
+ const subject=`${type.toLowerCase().includes('quote')?'Quote request':'Project brief'} — ${type}`;
+ const body=`Hi Amjad,\n\n${message}\n\nProject type: ${type}\nBudget (USD): ${budget}\nTarget date: ${date}\n`;
+ if(event.submitter?.value==='email-app'){
+  location.href=`mailto:amjadshahg26@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  showToast('Opening your email app — review and send your message there.');
+  return;
+ }
+ const gmail=new URL('https://mail.google.com/mail/');
+ gmail.search=new URLSearchParams({view:'cm',fs:'1',to:'amjadshahg26@gmail.com',su:subject,body}).toString();
+ location.href=gmail.href;
+ showToast('Opening your Gmail draft — review and send your message there.');
+});
 document.getElementById('year').textContent=new Date().getFullYear();function updateTime(){try{document.getElementById('local-time').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date())+' PKT';}catch{}}updateTime();setInterval(updateTime,60000);
 const motionButton=document.getElementById('motion-toggle');let motionPaused=reduced.matches;function setMotion(){document.body.classList.toggle('motion-paused',motionPaused);motionButton.setAttribute('aria-pressed',String(motionPaused));motionButton.textContent=motionPaused?'▶ Resume motion':'Ⅱ Pause motion';motionButton.setAttribute('aria-label',motionPaused?'Resume decorative motion':'Pause decorative motion');}setMotion();motionButton.addEventListener('click',()=>{motionPaused=!motionPaused;setMotion();});reduced.addEventListener('change',()=>{motionPaused=reduced.matches;setMotion();});
 document.querySelectorAll('[data-fyp-feature]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-fyp-feature]').forEach(b=>{const selected=b===button;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));});const text={compiler:'A documented educational language, compiled to bytecode and executed by a team-developed virtual machine.',debugger:'Step through execution, inspect variables and lists, set breakpoints, and follow the call stack.',voice:'An English push-to-talk tutor with supported question intents, reviewed explanations, and progressive hints.'};document.getElementById('fyp-feature-description').textContent=text[button.dataset.fypFeature];}));
