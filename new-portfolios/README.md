@@ -30,3 +30,8 @@ stage and restrictions described; their access settings are unchanged.
 The two existing PDF CVs are reused without edits.
 
 Personal and client assets remain the property of their respective owners.
+
+## Render deployments
+
+- Creative: https://amjad-creative-studio.onrender.com/
+- Software: https://amjad-software-engineer.onrender.com/
