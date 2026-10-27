@@ -13,3 +13,7 @@ From `src/`, run `npm run build`. The build uses Node built-ins to copy the stat
 The existing Render service uses root directory `src`, build command `npm install; npm run build`, and publish directory `build`. It deploys the repository's `master` branch automatically. The previous React implementation remains in the repository.
 
 Personal and client media belong to their respective owners; no reuse licence is granted.
+
+## AI receptionist service
+
+The service feature at `#ai-receptionist` links to https://amjads-demo-agent.onrender.com/ and offers a custom quote for English receptionist implementations across phone, website chat and WhatsApp. Support is optional; provider costs are scoped separately. The development gallery includes the guided prototype as a seventh project with an original SVG illustration and an explicit distinction between the demo and production integrations. The contact form supports AI receptionist enquiries without sending automatically.
