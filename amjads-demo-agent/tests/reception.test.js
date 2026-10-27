@@ -1,0 +1,17 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {EXAMPLES,replyFor,validateRequest,csvCell,csvFor,todayISO} from '../dist/engine.js';
+const hotel=EXAMPLES[0],salon=EXAMPLES[1],today='2026-10-27';
+const stay={customer:'Jordan Example',contact:'jordan@example.com',service:'Classic King',date:'2026-11-10',end:'2026-11-12',party:'2',notes:''};
+test('valid hotel request passes without implying actual reservation',()=>assert.equal(validateRequest(stay,hotel,'booking',today),null));
+test('same-day checkout, past dates and impossible dates are rejected',()=>{assert.ok(validateRequest({...stay,end:stay.date},hotel,'booking',today));assert.ok(validateRequest({...stay,date:'2026-01-01'},hotel,'booking',today));assert.ok(validateRequest({...stay,date:'2027-02-31',end:'2027-03-10'},hotel,'booking',today));assert.ok(validateRequest({...stay,end:'2027-02-31'},hotel,'booking',today))});
+test('contact and room capacity validation rejects incomplete leads',()=>{assert.ok(validateRequest({...stay,contact:'invalid'},hotel,'booking',today));assert.ok(validateRequest({...stay,party:'4'},hotel,'booking',today));assert.equal(validateRequest({...stay,contact:'+1 (202) 555-0100'},hotel,'booking',today),null)});
+test('tenant services cannot leak across businesses',()=>assert.ok(validateRequest(stay,salon,'booking',today)));
+test('salon accepts an in-hours weekday and rejects closed days',()=>{const r={...stay,service:'Cut & finish',date:'2026-10-28',time:'11:00'};assert.equal(validateRequest(r,salon,'booking',today),null);assert.ok(validateRequest({...r,date:'2026-11-01'},salon,'booking',today));assert.ok(validateRequest({...r,time:'23:00'},salon,'booking',today))});
+test('handoff requires an actual message, not booking fields',()=>{assert.equal(validateRequest({customer:'Lee',contact:'lee@example.com',notes:'Please discuss my question'},hotel,'handoff',today),null);assert.ok(validateRequest({customer:'Lee',contact:'lee@example.com',notes:''},hotel,'handoff',today))});
+test('unknown questions escalate without inventing business facts',()=>{const r=replyFor('Do you have a rooftop helipad?',hotel);assert.equal(r.action,'handoff');assert.match(r.text,/don’t have a verified answer/)});
+test('cancellations stay requests for staff review',()=>{const r=replyFor('What is the cancellation policy?',hotel);assert.equal(r.action,'handoff');assert.match(r.text,/cannot change a real/)});
+test('pricing uses current business and marks fictional rates',()=>{assert.match(replyFor('prices',hotel).text,/Classic King/);assert.doesNotMatch(replyFor('prices',salon).text,/Classic King/);assert.match(replyFor('prices',salon).text,/illustrative/)});
+test('customized hours are used by the reply engine',()=>assert.match(replyFor('opening hours',{...salon,hours:'Weekdays 10 am–4 pm'}).text,/10 am–4 pm/));
+test('CSV escapes commas, quotes and spreadsheet formulas',()=>{assert.equal(csvCell('=1+1'),'"\'=1+1"');assert.equal(csvCell('a,"b"'),'"a,""b"""');assert.match(csvFor([{id:'123',customer:'=cmd',contact:'+12025550100'}]),/"\'=cmd"/)});
+test('local calendar date formatting is stable',()=>assert.equal(todayISO(new Date(2026,9,27,12)),'2026-10-27'));
