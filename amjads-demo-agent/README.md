@@ -37,3 +37,7 @@ All page strings render through text content or HTML escaping. No production sec
 This export is stored in `amjads-demo-agent/` on the `amjads-demo-agent` GitHub branch. Render static publishing uses `amjads-demo-agent/dist`, with `node --test amjads-demo-agent/tests/*.test.js` as the build check. Set `SKIP_INSTALL_DEPS=true` because this app has no external dependencies. It needs no secrets or server.
 
 The Render URL is a public demonstration; staff controls apply only to browser-local example data. No actual bookings or live communications are created.
+
+## Browser audio recovery
+
+The first speech request starts synchronously from a tap. Native synthesis is resumed if paused; idle synthesis is not repeatedly cancelled. A visible “Enable / test sound” control and a “Tap to hear reply” retry support browsers that block speech. Sample calls pause on failed audio instead of silently advancing and allow retry or explicit skip. Speech never starting is detected separately from a long utterance. Audio playback still depends on device/browser voices and output settings. The remote test browser is not an iPhone, so real iOS audio output must be verified on-device.

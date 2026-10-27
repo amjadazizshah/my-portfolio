@@ -1,12 +1,13 @@
+import {BrowserSpeechPlayer} from './speech-player.js';
 import {VoiceDialog,sampleLines} from './voice-engine.js';
 export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
  const $=s=>document.querySelector(s),synth=window.speechSynthesis,Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- let dialog=new VoiceDialog(getProfile()),businessId=getProfile().id,transcript=[],active=false,sampleRunning=false,fastSample=false,muted=false,audioFailed=false,generation=0,clock=null,started=0,recognition=null,listening=false,finishPlayback=null,utterance=null,voiceList=[],saved=null,busy=false;
+ let dialog=new VoiceDialog(getProfile()),businessId=getProfile().id,transcript=[],active=false,sampleRunning=false,fastSample=false,muted=false,generation=0,clock=null,started=0,recognition=null,listening=false,sampleRecovery=null,failedSpeech=null,voiceList=[],saved=null,busy=false;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function status(label,state='ready'){$('#voiceStatus').textContent=label;$('#voicePortrait').dataset.state=state;$('#voiceStatusDot').dataset.state=state;$('#voiceBadge').textContent=active?(sampleRunning?'SAMPLE CALL':'DEMO ACTIVE'):'READY FOR A HELLO';$('#transcriptLive').textContent=active?'DEMO ACTIVE':'DEMO';}
  function support(text){$('#voiceSupport').textContent=text||(!synth?'Spoken audio is unavailable in this browser. The conversation and transcript still work.':!Recognition?'Microphone recognition is unavailable here. Play a sample call or type your part.':'Browser speech is ready. Start a demo, then tap the microphone to speak.');}
  function voices(){if(!synth)return;const selected=$('#voiceSelect').value;voiceList=synth.getVoices().filter(v=>/^en\b/i.test(v.lang));$('#voiceSelect').innerHTML='<option value="">Browser default English voice</option>'+voiceList.map((v,i)=>`<option value="${i}">${esc(v.name)} (${esc(v.lang)})</option>`).join('');if(selected!==''&&voiceList[Number(selected)])$('#voiceSelect').value=selected;}
- function controls(){$('#voiceLaunch').hidden=active;$('#voiceControls').hidden=!active;$('#sampleProgress').hidden=!sampleRunning;$('#voiceMic').disabled=!Recognition||sampleRunning;$('#voiceReplay').disabled=sampleRunning||busy;$('#voiceTextInput').disabled=sampleRunning||busy;$('#voiceTextForm button').disabled=sampleRunning||busy;$('#autoListen').disabled=!Recognition||sampleRunning;$('#voiceSelect').disabled=sampleRunning;$('#voiceQuickReplies').querySelectorAll('button').forEach(b=>b.disabled=sampleRunning||busy);}
+ function controls(){$('#voiceLaunch').hidden=active;$('#voiceControls').hidden=!active;$('#sampleProgress').hidden=!sampleRunning;$('#voiceMic').disabled=!Recognition||sampleRunning;$('#voiceReplay').disabled=sampleRunning||busy;$('#voiceTextInput').disabled=sampleRunning||busy;$('#voiceTextForm button').disabled=sampleRunning||busy;$('#autoListen').disabled=!Recognition||sampleRunning;$('#voiceSelect').disabled=sampleRunning;$('#voiceTest').disabled=sampleRunning;$('#voiceQuickReplies').querySelectorAll('button').forEach(b=>b.disabled=sampleRunning||busy);}
  function render(){
   $('#voiceTranscript').innerHTML=transcript.length?transcript.map(m=>`<div class="voice-turn ${m.role==='user'?'caller':'receptionist'}"><span>${m.role==='user'?'CALLER':esc(getProfile().agent).toUpperCase()}</span><p>${esc(m.text)}</p></div>`).join(''):'<div class="transcript-empty"><span>“</span><p>A good conversation<br>starts with hello.</p><small>Your call transcript will appear here.</small></div>';
   $('#voiceTranscript').scrollTop=$('#voiceTranscript').scrollHeight;
@@ -17,28 +18,33 @@ export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
  }
  function add(role,text){transcript.push({role,text});onTranscript(transcript.map(m=>({...m})));render();}
  function abortListening(){const r=recognition;recognition=null;listening=false;$('#voiceInterim').textContent='';if(r){r.onend=null;r.onerror=null;r.onresult=null;r.onstart=null;try{r.abort()}catch{}}$('#voiceMic').classList.remove('listening');$('#voiceMic small').textContent='Tap to speak';}
- function cancelSpeech(){if(finishPlayback)finishPlayback(false);if(synth)synth.cancel();utterance=null;}
+ const player=new BrowserSpeechPlayer({synth,Utterance:window.SpeechSynthesisUtterance,onIssue:code=>{support(code==='unsupported'?'This browser does not expose speech playback. Open this page directly in Safari or another supported browser.':code==='not-allowed'||code==='not-started'?'Audio did not start. Tap “Tap to hear reply” or “Enable / test sound”. On iPhone, try opening the link directly in Safari and turn up media volume.':'Voice playback stopped. Tap to hear the reply again, or select another English voice.');}});
+ function cancelSpeech(){player.stop();}
  function speak(text,role='assistant',fast=false){
-  cancelSpeech();abortListening();if(muted||fast||audioFailed||!synth)return Promise.resolve(true);
-  const token=generation;status(role==='user'?'Sample caller is speaking…':`${getProfile().agent} is speaking…`,'speaking');
-  return new Promise(resolve=>{let done=false;const u=new SpeechSynthesisUtterance(text.replace(/\n/g,' '));utterance=u;u.lang='en-US';u.rate=role==='user'?1.08:1.02;u.pitch=role==='user'?.88:1.05;const selected=$('#voiceSelect').value;const v=selected!==''?voiceList[Number(selected)]:voiceList.find(v=>v.lang==='en-US')||voiceList[0];if(v){u.voice=v;u.lang=v.lang}if(role==='user'){const alternative=voiceList.find(x=>x.voiceURI!==v?.voiceURI);if(alternative)u.voice=alternative}
-   const finish=ok=>{if(done)return;done=true;clearTimeout(watchdog);u.onend=null;u.onerror=null;if(utterance===u)utterance=null;if(finishPlayback===finish)finishPlayback=null;resolve(ok&&token===generation)};
-   const watchdog=setTimeout(()=>{audioFailed=true;support('Speech playback did not finish in this browser. The transcript still works; choose another voice or use the sample without audio.');finish(true);synth.cancel()},Math.min(45000,Math.max(9000,text.length*100)));
-   finishPlayback=finish;u.onend=()=>finish(true);u.onerror=e=>{if(!['interrupted','canceled'].includes(e.error)){audioFailed=true;support('Spoken audio is unavailable in this browser session. You can still try the conversation; choose another voice to retry.')}finish(true)};
-   try{synth.speak(u)}catch{audioFailed=true;support('Voice playback could not start. The transcript still works.');finish(true)}
-  });
+  cancelSpeech();abortListening();if(muted||fast)return Promise.resolve(true);
+  voices();failedSpeech={text,role};const token=generation;
+  status(role==='user'?'Sample caller is speaking…':`${getProfile().agent} is speaking…`,'speaking');
+  const selected=$('#voiceSelect').value;let voice=selected!==''?voiceList[Number(selected)]:voiceList.find(v=>v.lang==='en-US')||voiceList[0];
+  if(role==='user')voice=voiceList.find(v=>v.voiceURI!==voice?.voiceURI)||voice;
+  return player.play(text,{voice,rate:role==='user'?1.08:1.02,pitch:role==='user'?.88:1.05}).then(ok=>{if(token!==generation)return false;if(ok){failedSpeech=null;$('#voiceRetry').hidden=true;}else{$('#voiceRetry').hidden=false;status('Audio paused · tap to hear','idle');}return ok;});
+ }
+ async function speechTurn(text,role='assistant',fast=false){
+  const token=generation,ok=await speak(text,role,fast);
+  if(ok||token!==generation||!active||!sampleRunning||fastSample||muted)return ok;
+  status('Sample paused · tap to hear','idle');$('#voicePrompt').textContent='Audio needs another tap. Hear this line to continue, or skip audio to view the result.';
+  return new Promise(resolve=>{sampleRecovery={text,role,resolve};$('#voiceRetry').hidden=false;});
  }
  function stop(message='Demo ended. Start again whenever you like.'){
-  generation++;active=false;sampleRunning=false;fastSample=false;busy=false;abortListening();cancelSpeech();clearInterval(clock);clock=null;status('Demo ended','idle');$('#voicePrompt').textContent=message;controls();
+  generation++;if(sampleRecovery){sampleRecovery.resolve(false);sampleRecovery=null;}$('#voiceRetry').hidden=true;$('#voiceRetry').disabled=false;active=false;sampleRunning=false;fastSample=false;busy=false;abortListening();cancelSpeech();clearInterval(clock);clock=null;status('Demo ended','idle');$('#voicePrompt').textContent=message;controls();
  }
  async function begin(sample=false,silent=false){
-  stop();const token=++generation;active=true;sampleRunning=sample;fastSample=false;audioFailed=false;support();transcript=[];saved=null;dialog=new VoiceDialog(getProfile());started=Date.now();$('#voiceTimer').textContent='00:00';clock=setInterval(()=>{const t=Math.floor((Date.now()-started)/1000);$('#voiceTimer').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')},1000);$('#voicePrompt').textContent=sample?'A complete example conversation. Both voices are simulated.':'Tap the microphone, speak, then hear your receptionist reply.';status('Starting your demo…');add('assistant',dialog.greeting());
-  const complete=silent?true:await speak(dialog.greeting());if(token!==generation)return false;if(!sample&&!busy){status('Your turn · tap to speak');if(complete&&$('#autoListen').checked)listen()}return true;
+  stop();const token=++generation;active=true;sampleRunning=sample;fastSample=false;support();transcript=[];saved=null;dialog=new VoiceDialog(getProfile());started=Date.now();$('#voiceTimer').textContent='00:00';clock=setInterval(()=>{const t=Math.floor((Date.now()-started)/1000);$('#voiceTimer').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')},1000);$('#voicePrompt').textContent=sample?'A complete example conversation. Both voices are simulated.':'Tap the microphone, speak, then hear your receptionist reply.';status('Starting your demo…');add('assistant',dialog.greeting());
+  const complete=silent?true:await speechTurn(dialog.greeting());if(token!==generation)return false;if(!sample&&!busy){status(complete?'Your turn · tap to speak':'Audio paused · tap to hear');if(complete&&$('#autoListen').checked)listen()}return true;
  }
  async function receive(text,{sample=false,fast=false}={}){
   if(!text.trim()||busy)return;if(!active){const ok=await begin(false,true);if(!ok)return}const token=generation;busy=true;abortListening();cancelSpeech();add('user',text.trim());
-  if(sample&&!fast)await speak(text,'user');if(token!==generation)return;status('Taking a moment…','thinking');const response=dialog.respond(text);if(dialog.step!=='idle')saved=null;if(response.request){saved=saveRequest(response.request,transcript);}
-  add('assistant',response.text);const completed=await speak(response.text,'assistant',fast||fastSample);if(token!==generation)return;busy=false;render();status('Your turn · tap to speak');
+  if(sample&&!fast)await speechTurn(text,'user');if(token!==generation)return;status('Taking a moment…','thinking');const response=dialog.respond(text);if(dialog.step!=='idle')saved=null;if(response.request){saved=saveRequest(response.request,transcript);}
+  add('assistant',response.text);const completed=await speechTurn(response.text,'assistant',fast||fastSample);if(token!==generation)return;busy=false;render();status(completed?'Your turn · tap to speak':'Audio paused · tap to hear');
   if(response.end){stop('Thank you for trying the voice receptionist.');return}if(!sample&&completed&&$('#autoListen').checked)listen();
  }
  function listen(){
@@ -60,13 +66,15 @@ export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
   $('#voiceAgent').textContent=`Hello, I’m ${p.agent}.`;$('#voiceBusiness').textContent=`Your receptionist at ${p.name}`;$('#voiceMonogram').textContent=p.agent[0];render();
  }
  $('#startVoice').addEventListener('click',()=>begin());$('#sampleVoice').addEventListener('click',runSample);$('#endVoice').addEventListener('click',()=>stop());$('#voiceMic').addEventListener('click',listen);
- $('#voiceReplay').addEventListener('click',async()=>{const last=[...transcript].reverse().find(m=>m.role==='assistant');if(last){const token=generation;await speak(last.text);if(active&&token===generation)status('Your turn · tap to speak')}});
+ $('#voiceReplay').addEventListener('click',async()=>{const last=[...transcript].reverse().find(m=>m.role==='assistant');if(last){voices();const token=generation;await speak(last.text);if(active&&token===generation)status('Your turn · tap to speak')}});
  $('#voiceMute').addEventListener('click',()=>{muted=!muted;$('#voiceMute').setAttribute('aria-pressed',String(muted));$('#voiceMute').setAttribute('aria-label',muted?'Unmute spoken replies':'Mute spoken replies');$('#voiceMute span').textContent=muted?'♪':'♫';$('#voiceMute small').textContent=muted?'Sound off':'Sound on';if(muted){cancelSpeech();status(sampleRunning?'Sample call · sound off':'Your turn · sound off')}});
- $('#finishSample').addEventListener('click',()=>{fastSample=true;cancelSpeech()});
+ $('#finishSample').addEventListener('click',()=>{fastSample=true;if(sampleRecovery){sampleRecovery.resolve(true);sampleRecovery=null;}$('#voiceRetry').hidden=true;cancelSpeech()});
  $('#voiceTextForm').addEventListener('submit',e=>{e.preventDefault();const input=$('#voiceTextInput');if(sampleRunning||busy)return;const text=input.value;input.value='';receive(text)});
  $('#voiceQuickReplies').addEventListener('click',e=>{const b=e.target.closest('[data-voice-reply]');if(b&&!sampleRunning)receive(b.dataset.voiceReply)});
- $('#voiceSelect').addEventListener('change',()=>{audioFailed=false;support()});
+ $('#voiceSelect').addEventListener('change',()=>{support()});
  $('#autoListen').addEventListener('change',()=>{if($('#autoListen').checked&&active&&!sampleRunning)listen();else abortListening()});
+ $('#voiceTest').addEventListener('click',()=>{voices();const token=generation;speak('Hello, this is Amjad’s Demo Agent. Your speaker test is playing.').then(ok=>{if(token!==generation)return;if(ok){support('Speaker test finished. If it was silent, check media volume and audio output, and open this page directly in Safari.');status(active?'Your turn · tap to speak':'Speaker test complete','idle');}});});
+ $('#voiceRetry').addEventListener('click',()=>{const recovery=sampleRecovery;const item=recovery||failedSpeech||[...transcript].reverse().find(m=>m.role==='assistant');if(!item)return;$('#voiceRetry').disabled=true;const token=generation;speak(item.text,item.role==='user'?'user':'assistant').then(ok=>{if(token!==generation)return;$('#voiceRetry').disabled=false;if(ok&&recovery&&sampleRecovery===recovery){sampleRecovery=null;recovery.resolve(true);}else if(ok)status(active?'Your turn · tap to speak':'Audio test complete','idle');});});
  $('#voiceOpenInbox').addEventListener('click',openInbox);window.addEventListener('pagehide',()=>stop());document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop('Demo paused because this page was hidden. Start again to resume.')});
  if(synth){synth.addEventListener('voiceschanged',voices);voices()}support();refresh();return {stop,refresh};
 }
