@@ -6,7 +6,7 @@ An English **voice receptionist demonstration**, built for sales conversations w
 
 Serve `dist/` with any static HTTP server. No dependency installation, API key, or build is required. Example: `python3 -m http.server 8080 --directory dist`.
 
-Run meaningful logic checks with `npm test` (Node 20+). There are 38 checks covering booking validation, three complete voice sample flows, spoken date/time/contact parsing, confirmation requirements, interruption handling, tenant service separation, and CSV escaping. Browser testing covers request capture, inbox review, business separation, and the sample conversation. The test browser has no usable speech voice, so actual audible playback and microphone transcription could not be verified in that environment.
+Run meaningful logic checks with `npm test` (Node 20+). There are 39 checks covering booking validation, three complete voice sample flows, spoken date/time/contact parsing, confirmation requirements, interruption handling, tenant service separation, and CSV escaping. Browser testing covers request capture, inbox review, business separation, and the sample conversation. The test browser has no usable speech voice, so actual audible playback and microphone transcription could not be verified in that environment.
 
 ## Working behavior
 

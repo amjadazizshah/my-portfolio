@@ -51,3 +51,8 @@ test('visible native audio controls and a recorded speaker test are shipped',()=
  assert.match(html,/<audio id="recordedAudio" controls playsinline/);
  assert.ok(statSync(new URL('../dist/audio/test.mp3',import.meta.url)).size>1000);
 });
+
+test('native pause reports a paused sample and stopping detaches its handler',()=>{
+ const f=fixture();let paused=0;f.player.start('one.mp3',{onPause:()=>paused++});
+ f.audio.onpause();assert.equal(paused,1);f.player.stop();assert.equal(f.audio.onpause,null);
+});

@@ -89,7 +89,7 @@ export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
    $('#voicePrompt').textContent='The sample request is saved for review in this browser. Open the staff inbox to see it.';
   }
   progress(0);
-  recorded.start(clip.src,{onProgress:progress,onStart:()=>progress(audio.currentTime),onComplete:complete,onIssue:code=>{
+  recorded.start(clip.src,{onPause:()=>{if(token===generation&&sampleRunning)status('Sample paused · press Play','idle');},onProgress:progress,onStart:()=>progress(audio.currentTime),onComplete:complete,onIssue:code=>{
    if(token!==generation)return;status('Sample ready · press audio play','idle');
    support(code==='not-allowed'?'Tap Play on the audio player below. Your browser requires a direct tap to start sound.':'The recording could not load. Check your connection and tap Play sample call again.');
   }});
