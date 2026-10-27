@@ -1,11 +1,15 @@
 import {BrowserSpeechPlayer} from './speech-player.js';
-import {VoiceDialog,sampleLines} from './voice-engine.js';
+import {VoiceDialog} from './voice-engine.js';
+import {EXAMPLES} from './engine.js';
+import {RecordedSamplePlayer,sampleConversation} from './recorded-sample.js';
+import {SAMPLE_AUDIO} from './sample-audio.js';
 export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
  const $=s=>document.querySelector(s),synth=window.speechSynthesis,Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
  let dialog=new VoiceDialog(getProfile()),businessId=getProfile().id,transcript=[],active=false,sampleRunning=false,fastSample=false,muted=false,generation=0,clock=null,started=0,recognition=null,listening=false,sampleRecovery=null,failedSpeech=null,voiceList=[],saved=null,busy=false;
+ const audio=$('#recordedAudio'),recorded=new RecordedSamplePlayer(audio);
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function status(label,state='ready'){$('#voiceStatus').textContent=label;$('#voicePortrait').dataset.state=state;$('#voiceStatusDot').dataset.state=state;$('#voiceBadge').textContent=active?(sampleRunning?'SAMPLE CALL':'DEMO ACTIVE'):'READY FOR A HELLO';$('#transcriptLive').textContent=active?'DEMO ACTIVE':'DEMO';}
- function support(text){$('#voiceSupport').textContent=text||(!synth?'Spoken audio is unavailable in this browser. The conversation and transcript still work.':!Recognition?'Microphone recognition is unavailable here. Play a sample call or type your part.':'Browser speech is ready. Start a demo, then tap the microphone to speak.');}
+ function support(text){$('#voiceSupport').textContent=text||(!synth?'Spoken audio is unavailable in this browser. The conversation and transcript still work.':!Recognition?'Microphone recognition is unavailable here. Play a sample call or type your part.':'For a recorded example, tap Play sample call. Live voice uses your browser’s speech service.');}
  function voices(){if(!synth)return;const selected=$('#voiceSelect').value;voiceList=synth.getVoices().filter(v=>/^en\b/i.test(v.lang));$('#voiceSelect').innerHTML='<option value="">Browser default English voice</option>'+voiceList.map((v,i)=>`<option value="${i}">${esc(v.name)} (${esc(v.lang)})</option>`).join('');if(selected!==''&&voiceList[Number(selected)])$('#voiceSelect').value=selected;}
  function controls(){$('#voiceLaunch').hidden=active;$('#voiceControls').hidden=!active;$('#sampleProgress').hidden=!sampleRunning;$('#voiceMic').disabled=!Recognition||sampleRunning;$('#voiceReplay').disabled=sampleRunning||busy;$('#voiceTextInput').disabled=sampleRunning||busy;$('#voiceTextForm button').disabled=sampleRunning||busy;$('#autoListen').disabled=!Recognition||sampleRunning;$('#voiceSelect').disabled=sampleRunning;$('#voiceTest').disabled=sampleRunning;$('#voiceQuickReplies').querySelectorAll('button').forEach(b=>b.disabled=sampleRunning||busy);}
  function render(){
@@ -21,7 +25,7 @@ export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
  const player=new BrowserSpeechPlayer({synth,Utterance:window.SpeechSynthesisUtterance,onIssue:code=>{support(code==='unsupported'?'This browser does not expose speech playback. Open this page directly in Safari or another supported browser.':code==='not-allowed'||code==='not-started'?'Audio did not start. Tap “Tap to hear reply” or “Enable / test sound”. On iPhone, try opening the link directly in Safari and turn up media volume.':'Voice playback stopped. Tap to hear the reply again, or select another English voice.');}});
  function cancelSpeech(){player.stop();}
  function speak(text,role='assistant',fast=false){
-  cancelSpeech();abortListening();if(muted||fast)return Promise.resolve(true);
+  recorded.stop();$('#recordedPlayer').hidden=true;cancelSpeech();abortListening();if(muted||fast)return Promise.resolve(true);
   voices();failedSpeech={text,role};const token=generation;
   status(role==='user'?'Sample caller is speaking…':`${getProfile().agent} is speaking…`,'speaking');
   const selected=$('#voiceSelect').value;let voice=selected!==''?voiceList[Number(selected)]:voiceList.find(v=>v.lang==='en-US')||voiceList[0];
@@ -35,7 +39,7 @@ export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
   return new Promise(resolve=>{sampleRecovery={text,role,resolve};$('#voiceRetry').hidden=false;});
  }
  function stop(message='Demo ended. Start again whenever you like.'){
-  generation++;if(sampleRecovery){sampleRecovery.resolve(false);sampleRecovery=null;}$('#voiceRetry').hidden=true;$('#voiceRetry').disabled=false;active=false;sampleRunning=false;fastSample=false;busy=false;abortListening();cancelSpeech();clearInterval(clock);clock=null;status('Demo ended','idle');$('#voicePrompt').textContent=message;controls();
+  generation++;recorded.stop();$('#recordedPlayer').hidden=true;if(sampleRecovery){sampleRecovery.resolve(false);sampleRecovery=null;}$('#voiceRetry').hidden=true;$('#voiceRetry').disabled=false;active=false;sampleRunning=false;fastSample=false;busy=false;abortListening();cancelSpeech();clearInterval(clock);clock=null;status('Demo ended','idle');$('#voicePrompt').textContent=message;controls();
  }
  async function begin(sample=false,silent=false){
   stop();const token=++generation;active=true;sampleRunning=sample;fastSample=false;support();transcript=[];saved=null;dialog=new VoiceDialog(getProfile());started=Date.now();$('#voiceTimer').textContent='00:00';clock=setInterval(()=>{const t=Math.floor((Date.now()-started)/1000);$('#voiceTimer').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')},1000);$('#voicePrompt').textContent=sample?'A complete example conversation. Both voices are simulated.':'Tap the microphone, speak, then hear your receptionist reply.';status('Starting your demo…');add('assistant',dialog.greeting());
@@ -57,9 +61,39 @@ export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
   r.onend=()=>{if(token!==generation||recognition!==r)return;recognition=null;listening=false;$('#voiceMic').classList.remove('listening');$('#voiceMic small').textContent='Tap to speak';if(!delivered&&!failed){status('Your turn · tap to speak');$('#voiceInterim').textContent='No final words detected. Try again or type your part.'}};
   try{r.start()}catch{abortListening();support('Microphone recognition could not start here. Try a sample call or type your part.');status('Your turn · type or choose a reply')}
  }
- async function runSample(){
-  if(!await begin(true))return;const token=generation,lines=sampleLines(getProfile());for(let i=0;i<lines.length;i++){if(token!==generation||!active)return;$('#sampleProgressText').textContent=`Sample caller turn ${i+1} of ${lines.length}`;await receive(lines[i],{sample:true,fast:fastSample});if(token!==generation)return;}
-  sampleRunning=false;busy=false;status('Sample complete · request captured');$('#voicePrompt').textContent='That’s the full flow: greeting, details, review, and a pending staff request.';controls();
+ function runSample(){
+  const profile=getProfile(),original=EXAMPLES.find(p=>p.id===profile.id);
+  if(!original||original.name!==profile.name||original.agent!==profile.agent||JSON.stringify(original.services)!==JSON.stringify(profile.services)){
+   support('The recording uses the original example name and services. Restore the example profile in Business knowledge to hear it, or use Start live voice demo with your edited profile.');return;
+  }
+  // begin(true,true) performs its reset synchronously and does not start native speech.
+  begin(true,true);
+  const token=generation,clip=SAMPLE_AUDIO[profile.id],script=sampleConversation(profile);
+  transcript=[];render();audio.muted=muted;$('#recordedPlayer').hidden=false;
+  $('#voicePrompt').textContent='Recorded example conversation. Dates are shown in the transcript. Use the audio controls to play or pause.';
+  support('Recorded sample · no microphone, browser voice or voice API required. Both parts use a synthetic example voice.');
+  function progress(seconds){
+   if(token!==generation||!sampleRunning)return;
+   let last=0;for(let i=0;i<clip.starts.length;i++)if(seconds>=clip.starts[i])last=i;
+   transcript=script.turns.slice(0,last+1);onTranscript(transcript.map(m=>({...m})));render();
+   const turn=script.turns[last];status(turn.role==='user'?'Recorded caller is speaking…':`${profile.agent} · recorded reply`,'speaking');
+   $('#sampleProgressText').textContent=`Recorded line ${last+1} of ${script.turns.length}`;
+   const t=Math.floor(seconds);$('#voiceTimer').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+  }
+  clearInterval(clock);clock=null;
+  function complete(){
+   if(token!==generation||!sampleRunning)return;
+   transcript=script.turns.map(m=>({...m}));onTranscript(transcript);
+   if(script.request)saved=saveRequest(script.request,transcript);
+   sampleRunning=false;busy=false;render();status('Sample complete · request captured');
+   $('#voicePrompt').textContent='The sample request is saved for review in this browser. Open the staff inbox to see it.';
+  }
+  progress(0);
+  recorded.start(clip.src,{onProgress:progress,onStart:()=>progress(audio.currentTime),onComplete:complete,onIssue:code=>{
+   if(token!==generation)return;status('Sample ready · press audio play','idle');
+   support(code==='not-allowed'?'Tap Play on the audio player below. Your browser requires a direct tap to start sound.':'The recording could not load. Check your connection and tap Play sample call again.');
+  }});
+  recorded.completeSample=complete;
  }
  function refresh(){
   const p=getProfile();if(businessId!==p.id){stop();businessId=p.id;transcript=[];saved=null;dialog=new VoiceDialog(p);$('#voiceTimer').textContent='00:00';status('Ready when you are','idle');$('#voicePrompt').textContent='Hear a sample call, or start a demo and speak to your receptionist.';}else dialog.profile=p;
@@ -67,13 +101,17 @@ export function initVoiceDemo({getProfile,saveRequest,onTranscript,openInbox}){
  }
  $('#startVoice').addEventListener('click',()=>begin());$('#sampleVoice').addEventListener('click',runSample);$('#endVoice').addEventListener('click',()=>stop());$('#voiceMic').addEventListener('click',listen);
  $('#voiceReplay').addEventListener('click',async()=>{const last=[...transcript].reverse().find(m=>m.role==='assistant');if(last){voices();const token=generation;await speak(last.text);if(active&&token===generation)status('Your turn · tap to speak')}});
- $('#voiceMute').addEventListener('click',()=>{muted=!muted;$('#voiceMute').setAttribute('aria-pressed',String(muted));$('#voiceMute').setAttribute('aria-label',muted?'Unmute spoken replies':'Mute spoken replies');$('#voiceMute span').textContent=muted?'♪':'♫';$('#voiceMute small').textContent=muted?'Sound off':'Sound on';if(muted){cancelSpeech();status(sampleRunning?'Sample call · sound off':'Your turn · sound off')}});
- $('#finishSample').addEventListener('click',()=>{fastSample=true;if(sampleRecovery){sampleRecovery.resolve(true);sampleRecovery=null;}$('#voiceRetry').hidden=true;cancelSpeech()});
+ $('#voiceMute').addEventListener('click',()=>{muted=!muted;$('#voiceMute').setAttribute('aria-pressed',String(muted));$('#voiceMute').setAttribute('aria-label',muted?'Unmute spoken replies':'Mute spoken replies');$('#voiceMute span').textContent=muted?'♪':'♫';$('#voiceMute small').textContent=muted?'Sound off':'Sound on';audio.muted=muted;if(muted&&!sampleRunning){cancelSpeech();status('Your turn · sound off')}});
+ $('#finishSample').addEventListener('click',()=>{if(sampleRunning&&recorded.job){recorded.completeSample?.();recorded.stop();return;}fastSample=true;if(sampleRecovery){sampleRecovery.resolve(true);sampleRecovery=null;}$('#voiceRetry').hidden=true;cancelSpeech()});
  $('#voiceTextForm').addEventListener('submit',e=>{e.preventDefault();const input=$('#voiceTextInput');if(sampleRunning||busy)return;const text=input.value;input.value='';receive(text)});
  $('#voiceQuickReplies').addEventListener('click',e=>{const b=e.target.closest('[data-voice-reply]');if(b&&!sampleRunning)receive(b.dataset.voiceReply)});
  $('#voiceSelect').addEventListener('change',()=>{support()});
  $('#autoListen').addEventListener('change',()=>{if($('#autoListen').checked&&active&&!sampleRunning)listen();else abortListening()});
- $('#voiceTest').addEventListener('click',()=>{voices();const token=generation;speak('Hello, this is Amjad’s Demo Agent. Your speaker test is playing.').then(ok=>{if(token!==generation)return;if(ok){support('Speaker test finished. If it was silent, check media volume and audio output, and open this page directly in Safari.');status(active?'Your turn · tap to speak':'Speaker test complete','idle');}});});
+ $('#voiceTest').addEventListener('click',()=>{
+  if(sampleRunning)return;cancelSpeech();abortListening();audio.muted=false;$('#recordedPlayer').hidden=false;
+  support('Recorded speaker test. If needed, press Play on the audio player. Check media volume and your selected speaker or headphones.');
+  recorded.start('audio/test.mp3',{onStart:()=>status('Recorded speaker test playing…','speaking'),onComplete:()=>status(active?'Your turn · tap to speak':'Speaker test complete','idle'),onIssue:()=>{status('Press Play on the audio player','idle');}});
+ });
  $('#voiceRetry').addEventListener('click',()=>{const recovery=sampleRecovery;const item=recovery||failedSpeech||[...transcript].reverse().find(m=>m.role==='assistant');if(!item)return;$('#voiceRetry').disabled=true;const token=generation;speak(item.text,item.role==='user'?'user':'assistant').then(ok=>{if(token!==generation)return;$('#voiceRetry').disabled=false;if(ok&&recovery&&sampleRecovery===recovery){sampleRecovery=null;recovery.resolve(true);}else if(ok)status(active?'Your turn · tap to speak':'Audio test complete','idle');});});
  $('#voiceOpenInbox').addEventListener('click',openInbox);window.addEventListener('pagehide',()=>stop());document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop('Demo paused because this page was hidden. Start again to resume.')});
  if(synth){synth.addEventListener('voiceschanged',voices);voices()}support();refresh();return {stop,refresh};

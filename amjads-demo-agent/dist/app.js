@@ -1,4 +1,4 @@
-import {initVoiceDemo} from './voice.js';
+import {initVoiceDemo} from './voice.js?v=recorded-audio-2';
 import {EXAMPLES,todayISO,greeting,replyFor,validateRequest,csvFor} from './engine.js';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],KEY='amjads-demo-agent-v1';
 let data;try{data=JSON.parse(localStorage.getItem(KEY)||'null')}catch{};
