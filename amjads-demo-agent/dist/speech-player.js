@@ -1,6 +1,6 @@
 // Keep the first native speak() call synchronous with the visitor's tap.
 export class BrowserSpeechPlayer {
- constructor({synth,Utterance,onStart=()=>{},onIssue=()=>{},setTimer=setTimeout,clearTimer=clearTimeout}){Object.assign(this,{synth,Utterance,onStart,onIssue,setTimer,clearTimer});this.current=null}
+ constructor({synth,Utterance,onStart=()=>{},onIssue=()=>{},setTimer=(fn,ms)=>setTimeout(fn,ms),clearTimer=id=>clearTimeout(id)}){Object.assign(this,{synth,Utterance,onStart,onIssue});this.setTimer=(fn,ms)=>setTimer(fn,ms);this.clearTimer=id=>clearTimer(id);this.current=null}
  stop(){
   const job=this.current;
   const needsCancel=!!job||!!(this.synth&&(this.synth.speaking||this.synth.pending));
