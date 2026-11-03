@@ -41,6 +41,6 @@
 
 /* Original portrait, presented inside the luminous glass frame. */
 .real-portrait{position:absolute;inset:0 35px -10px;border-radius:32px;overflow:hidden;z-index:2;box-shadow:0 16px 36px #294a4430;transform:rotate(-3deg);border:5px solid #ffffffcf;background:#dbe8e3}
-.real-portrait img{position:absolute;max-width:none;width:162%;height:auto;left:-31%;top:-28%}
+.real-portrait img{position:absolute;inset:0;max-width:none;width:100%;height:100%;object-fit:cover;object-position:38% 48%;transform:scale(1.65);transform-origin:38% 48%}
 .portrait-spark{z-index:3}.cv-downloads{gap:18px}.cv-downloads .quiet-link{font-size:11px}
-@media(max-width:700px){.real-portrait{inset:0 27px -4px;border-radius:27px}.real-portrait img{top:-24%}.cv-downloads{gap:16px}}
+@media(max-width:700px){.real-portrait{inset:0 27px -4px;border-radius:27px}.cv-downloads{gap:16px}}
