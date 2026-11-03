@@ -1,0 +1,43 @@
+AMJAD SHAH — VIDEO PORTFOLIO SOURCE UPDATE — 2 NOVEMBER 2026
+
+INCLUDED WORK
+- Ecommerce: latest aligned reel, 31.37 seconds, vertical 1080p/60 fps. Listed as video editing and motion graphics, with Roman Urdu captions and sound design.
+- Regimen: the supplied 35.79-second product-and-app film, recovered from WhatsApp Video 2026-10-21 at 10.44.45 PM.mp4. This is not one of the older generated Regimen animation tests.
+- CRE·ADE: the supplied 29.116-second commercial already present in your portfolio, retained as the completed LumeX Creative example. It is not replaced by the generated 30-second draft.
+
+PRIMARY PORTFOLIO — https://my-portfolio-pc1o.onrender.com/
+Use Amjad-Portfolio-Source.zip. It contains the full prepared source snapshot.
+For an existing repository, preserve your newer work: copy only the changed paths listed below from the extracted archive into the existing master branch.
+  creative-portfolio/index.html
+  creative-portfolio/app.js
+  creative-portfolio/latest-work.css
+  creative-portfolio/assets/ecommerce-reel-2026.mp4
+  creative-portfolio/assets/ecommerce-reel-poster.jpg
+  creative-portfolio/assets/regimen-product-film-2026.mp4
+  creative-portfolio/assets/regimen-product-poster.jpg
+  docs/portfolio-project-register.md
+The correct supplied CRE·ADE video and poster are also included at:
+  creative-portfolio/assets/creade-commercial-2026.mp4
+  creative-portfolio/assets/commercial-poster-2026.jpg
+Keep those supplied versions if your existing checkout differs.
+Do not upload the ZIP itself as a website file. Extract it and preserve paths.
+Build command remains: cd src && npm run build
+Publish directory remains: src/build
+Commit the reviewed source changes and push through your existing GitHub/Render workflow.
+
+DEDICATED CREATIVE PORTFOLIO — https://amjad-creative-studio.onrender.com/
+Use Amjad-Creative-Portfolio-Update.zip with the existing two-new-portfolios branch.
+This is a changed-files patch, not a standalone repository. Copy its files into that branch, preserving paths. Existing FORM, VOLT, ORBIT and typography films, the icon, portrait and CV remain in your existing checkout and are not removed or replaced by this patch.
+The patch includes all three featured web videos and their posters, updated gallery/player data, and a Video editing filter.
+Validate in the complete checkout: node new-portfolios/check.mjs creative
+Keep the publish directory: new-portfolios/creative
+
+MEDIA AND HANDOFF
+All three featured web video files are below 25 MiB each, H.264/AAC and fast-start ready.
+Ecommerce remains 1080x1920/60 fps; Regimen remains 1920x1080/24 fps; CRE·ADE remains 1920x1080/60 fps. The original high-quality media is not replaced.
+The site themes, service pricing, contact flow and software projects are preserved.
+CRE·ADE keeps its existing player without a visible download control or direct download link.
+No GitHub upload or live deployment was performed for this handoff.
+
+VALIDATION
+Main build completed. Both gallery scripts pass JavaScript syntax checks. New media and poster paths, metadata, unique HTML IDs and anchors were checked. The creative patch depends on the existing unchanged assets listed above. Browser UI checks are recorded separately if a local browser is available.
