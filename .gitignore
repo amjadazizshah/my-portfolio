@@ -14,6 +14,7 @@ server/node_modules
 # Build output
 dist
 dist-ssr
+src/build/
 
 # Environment files (keep out of git!)
 .env
